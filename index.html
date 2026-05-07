@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head> <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bovinos Tracker PWA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1>Bovinos Tracker</h1>
+        <nav>
+            <button id="btn-registro" class="nav-btn active">📝 Registro</button>
+            <button id="btn-dashboard" class="nav-btn">📊 Dashboard</button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <section id="vista-registro" class="view active-view">
+            <h2>Registro de Turno</h2>
+            <form id="form-indicadores" class="data-form">
+                <div class="form-group">
+                    <label for="mesero">Mesero / Responsable</label>
+                    <input type="text" id="mesero" required placeholder="Ej. Carlos C.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="ventas">Ventas Totales ($)</label>
+                    <input type="number" id="ventas" required placeholder="Ej. 15000">
+                </div>
+
+                <div class="form-group">
+                    <label for="encuestas">Encuestas Positivas</label>
+                    <input type="number" id="encuestas" required placeholder="Ej. 5">
+                </div>
+
+                <div class="form-group">
+                    <label for="rotacion">Rotación Promedio (Minutos)</label>
+                    <input type="number" id="rotacion" required placeholder="Ej. 45">
+                </div>
+
+                <button type="submit" class="submit-btn">Guardar Registro</button>
+            </form>
+        </section>
+
+        <section id="vista-dashboard" class="view hidden-view">
+            <h2>Resultados Acumulados</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <h3>Ventas Totales</h3>
+                    <p id="kpi-ventas">$0</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Satisfacción</h3>
+                    <p id="kpi-encuestas">0 Encuestas</p>
+                </div>
+                <div class="kpi-card">
+                    <h3>Eficiencia Promedio</h3>
+                    <p id="kpi-rotacion">0 Min</p>
+                </div>
+            </div>
+            
+            <h3>Historial de Registros</h3>
+            <ul id="lista-registros" class="history-list">
+                </ul>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
