@@ -1,4 +1,4 @@
-// Estructura de datos: Array para guardar los objetos de registro
+// Estructura de datos
 const historialRegistros = [];
 
 // Referencias al DOM
@@ -7,6 +7,7 @@ const btnDashboard = document.getElementById('btn-dashboard');
 const vistaRegistro = document.getElementById('vista-registro');
 const vistaDashboard = document.getElementById('vista-dashboard');
 const form = document.getElementById('form-indicadores');
+const filtroMes = document.getElementById('filtro-mes');
 
 // Navegación entre vistas
 const cambiarVista = (mostrarRegistro) => {
@@ -35,30 +36,50 @@ btnDashboard.addEventListener('click', () => cambiarVista(false));
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Crear objeto con los datos del formulario usando ES6
     const nuevoRegistro = {
         id: Date.now(),
+        fecha: document.getElementById('fecha').value, // Formato YYYY-MM-DD
         mesero: document.getElementById('mesero').value,
         ventas: parseFloat(document.getElementById('ventas').value),
         encuestas: parseInt(document.getElementById('encuestas').value),
-        rotacion: parseInt(document.getElementById('rotacion').value),
-        fecha: new Date().toLocaleDateString()
+        rotacion: parseInt(document.getElementById('rotacion').value)
     };
 
-    // Agregar al array
     historialRegistros.push(nuevoRegistro);
-    
-    // Limpiar formulario y dar feedback
     form.reset();
     alert('¡Registro guardado con éxito!');
 });
 
-// Lógica para procesar los datos y actualizar el Dashboard
-const actualizarDashboard = () => {
-    if (historialRegistros.length === 0) return;
+// Escuchar cambios en el filtro
+filtroMes.addEventListener('change', actualizarDashboard);
 
-    // Uso de métodos de arrays (reduce) para optimizar el cálculo de totales
-    const totales = historialRegistros.reduce((acc, registro) => {
+// Lógica para procesar los datos
+function actualizarDashboard() {
+    const mesSeleccionado = filtroMes.value;
+
+    // Filtrar los registros según el mes elegido
+    const registrosFiltrados = historialRegistros.filter(reg => {
+        if (mesSeleccionado === 'todos') return true;
+        const mesDelRegistro = reg.fecha.split('-')[1]; // Extrae el "03", "04", etc.
+        return mesDelRegistro === mesSeleccionado;
+    });
+
+    const kpiVentas = document.getElementById('kpi-ventas');
+    const kpiEncuestas = document.getElementById('kpi-encuestas');
+    const kpiRotacion = document.getElementById('kpi-rotacion');
+    const lista = document.getElementById('lista-registros');
+
+    // Si no hay registros para ese mes, mostrar todo en 0
+    if (registrosFiltrados.length === 0) {
+        kpiVentas.innerText = '$0';
+        kpiEncuestas.innerText = '0 Encuestas';
+        kpiRotacion.innerText = '0 Min';
+        lista.innerHTML = '<li>No hay registros para este mes.</li>';
+        return;
+    }
+
+    // Calcular totales del mes seleccionado
+    const totales = registrosFiltrados.reduce((acc, registro) => {
         return {
             ventas: acc.ventas + registro.ventas,
             encuestas: acc.encuestas + registro.encuestas,
@@ -66,31 +87,18 @@ const actualizarDashboard = () => {
         };
     }, { ventas: 0, encuestas: 0, rotacion: 0 });
 
-    const promedioRotacion = (totales.rotacion / historialRegistros.length).toFixed(0);
+    const promedioRotacion = (totales.rotacion / registrosFiltrados.length).toFixed(0);
 
     // Pintar KPIs en el DOM
-    document.getElementById('kpi-ventas').innerText = `$${totales.ventas.toLocaleString()}`;
-    document.getElementById('kpi-encuestas').innerText = totales.encuestas;
-    document.getElementById('kpi-rotacion').innerText = `${promedioRotacion} Min`;
+    kpiVentas.innerText = `$${totales.ventas.toLocaleString()}`;
+    kpiEncuestas.innerText = `${totales.encuestas} Encuestas`;
+    kpiRotacion.innerText = `${promedioRotacion} Min`;
 
-    // Pintar el historial mapeando el array
-    const lista = document.getElementById('lista-registros');
-    lista.innerHTML = historialRegistros.map(reg => `
+    // Pintar el historial
+    lista.innerHTML = registrosFiltrados.map(reg => `
         <li>
             <strong>${reg.fecha} - ${reg.mesero}</strong><br>
             Ventas: $${reg.ventas} | Encuestas: ${reg.encuestas} | Rotación: ${reg.rotacion} min
         </li>
     `).join('');
-};
-// Registro del Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(registration => {
-                console.log('ServiceWorker registrado con éxito: ', registration.scope);
-            })
-            .catch(err => {
-                console.log('Fallo en el registro del ServiceWorker: ', err);
-            });
-    });
 }
