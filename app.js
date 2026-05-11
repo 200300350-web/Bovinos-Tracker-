@@ -1,5 +1,5 @@
-// Estructura de datos
-const historialRegistros = [];
+// 1. CARGAR DATOS: Buscar en localStorage o iniciar vacío
+const historialRegistros = JSON.parse(localStorage.getItem('bovinos_data')) || [];
 
 // Referencias al DOM
 const btnRegistro = document.getElementById('btn-registro');
@@ -38,7 +38,7 @@ form.addEventListener('submit', (e) => {
 
     const nuevoRegistro = {
         id: Date.now(),
-        fecha: document.getElementById('fecha').value, // Formato YYYY-MM-DD
+        fecha: document.getElementById('fecha').value,
         mesero: document.getElementById('mesero').value,
         ventas: parseFloat(document.getElementById('ventas').value),
         encuestas: parseInt(document.getElementById('encuestas').value),
@@ -46,8 +46,12 @@ form.addEventListener('submit', (e) => {
     };
 
     historialRegistros.push(nuevoRegistro);
+    
+    // 2. GUARDAR DATOS: Guardar permanentemente en el navegador
+    localStorage.setItem('bovinos_data', JSON.stringify(historialRegistros));
+    
     form.reset();
-    alert('¡Registro guardado con éxito!');
+    alert('¡Registro guardado permanentemente!');
 });
 
 // Escuchar cambios en el filtro
@@ -57,10 +61,13 @@ filtroMes.addEventListener('change', actualizarDashboard);
 function actualizarDashboard() {
     const mesSeleccionado = filtroMes.value;
 
-    // Filtrar los registros según el mes elegido
     const registrosFiltrados = historialRegistros.filter(reg => {
         if (mesSeleccionado === 'todos') return true;
-        const mesDelRegistro = reg.fecha.split('-')[1]; // Extrae el "03", "04", etc.
+        
+        const fechaObj = new Date(reg.fecha + 'T00:00:00'); 
+        let mesDelRegistro = (fechaObj.getMonth() + 1).toString();
+        if (mesDelRegistro.length === 1) mesDelRegistro = '0' + mesDelRegistro; 
+
         return mesDelRegistro === mesSeleccionado;
     });
 
@@ -69,7 +76,6 @@ function actualizarDashboard() {
     const kpiRotacion = document.getElementById('kpi-rotacion');
     const lista = document.getElementById('lista-registros');
 
-    // Si no hay registros para ese mes, mostrar todo en 0
     if (registrosFiltrados.length === 0) {
         kpiVentas.innerText = '$0';
         kpiEncuestas.innerText = '0 Encuestas';
@@ -78,7 +84,6 @@ function actualizarDashboard() {
         return;
     }
 
-    // Calcular totales del mes seleccionado
     const totales = registrosFiltrados.reduce((acc, registro) => {
         return {
             ventas: acc.ventas + registro.ventas,
@@ -89,12 +94,10 @@ function actualizarDashboard() {
 
     const promedioRotacion = (totales.rotacion / registrosFiltrados.length).toFixed(0);
 
-    // Pintar KPIs en el DOM
     kpiVentas.innerText = `$${totales.ventas.toLocaleString()}`;
     kpiEncuestas.innerText = `${totales.encuestas} Encuestas`;
     kpiRotacion.innerText = `${promedioRotacion} Min`;
 
-    // Pintar el historial
     lista.innerHTML = registrosFiltrados.map(reg => `
         <li>
             <strong>${reg.fecha} - ${reg.mesero}</strong><br>
@@ -102,3 +105,6 @@ function actualizarDashboard() {
         </li>
     `).join('');
 }
+
+// 3. INICIALIZAR: Mostrar datos previos al abrir la app
+actualizarDashboard();

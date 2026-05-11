@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bovinos-tracker-v1';
+const CACHE_NAME = 'bovinos-tracker-v2'; // <- Solo cambias esto a v2
 const ASSETS = [
     './',
     './index.html',
